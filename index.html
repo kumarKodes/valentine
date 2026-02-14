@@ -21,6 +21,26 @@
             overflow: hidden;
         }
 
+        /* Floating Hearts */
+        .heart {
+            position: fixed;
+            bottom: -20px;
+            font-size: 20px;
+            animation: floatUp linear infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-110vh);
+                opacity: 0;
+            }
+        }
+
         .container {
             text-align: center;
             background: white;
@@ -62,12 +82,7 @@
         #noBtn {
             background-color: #6c757d;
             color: white;
-            /* IMPORTANT: starts normal */
             position: relative;
-        }
-
-        button:hover {
-            transform: scale(1.1);
         }
 
         .hidden {
@@ -78,6 +93,22 @@
             margin-top: 20px;
         }
 
+        .loadingBar {
+            width: 100%;
+            height: 20px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .loadingProgress {
+            height: 100%;
+            width: 0%;
+            background: #ff4d6d;
+            transition: width 0.3s ease;
+        }
+
         img {
             width: 250px;
             border-radius: 20px;
@@ -86,7 +117,7 @@
 </head>
 <body>
 
-    <!-- Background Romantic Music -->
+    <!-- Background Music -->
     <audio id="bgMusic" loop>
         <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9b2b1bfa5c.mp3?filename=romantic-ambient-piano-110624.mp3" type="audio/mp3">
     </audio>
@@ -96,6 +127,15 @@
         <div class="buttons">
             <button id="yesBtn">Yes 💖</button>
             <button id="noBtn">No 🙈</button>
+        </div>
+    </div>
+
+    <!-- Verification Screen -->
+    <div class="container hidden" id="verificationBox">
+        <h1>Verifying your decision... 💭</h1>
+        <p id="verificationText">Consulting Cupid...</p>
+        <div class="loadingBar">
+            <div class="loadingProgress" id="loadingProgress"></div>
         </div>
     </div>
 
@@ -111,14 +151,34 @@
         const noBtn = document.getElementById("noBtn");
         const yesBtn = document.getElementById("yesBtn");
         const proposalBox = document.getElementById("proposalBox");
+        const verificationBox = document.getElementById("verificationBox");
         const celebrationBox = document.getElementById("celebrationBox");
+        const loadingProgress = document.getElementById("loadingProgress");
+        const verificationText = document.getElementById("verificationText");
         const bgMusic = document.getElementById("bgMusic");
 
         let yesScale = 1;
-        let musicStarted = false;
         let chaosMode = false;
+        let musicStarted = false;
 
-        // Start music on first interaction
+        // Floating hearts generator
+        function createHeart() {
+            const heart = document.createElement("div");
+            heart.classList.add("heart");
+            heart.innerHTML = "💖";
+            heart.style.left = Math.random() * 100 + "vw";
+            heart.style.animationDuration = (Math.random() * 3 + 4) + "s";
+            heart.style.fontSize = (Math.random() * 20 + 15) + "px";
+            document.body.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 7000);
+        }
+
+        setInterval(createHeart, 500);
+
+        // Start music on first click
         document.addEventListener("click", () => {
             if (!musicStarted) {
                 bgMusic.play().catch(() => {});
@@ -129,28 +189,14 @@
         function moveNoButtonFullScreen() {
             const maxX = window.innerWidth - noBtn.offsetWidth;
             const maxY = window.innerHeight - noBtn.offsetHeight;
-
-            const randomX = Math.floor(Math.random() * maxX);
-            const randomY = Math.floor(Math.random() * maxY);
-
-            noBtn.style.left = randomX + "px";
-            noBtn.style.top = randomY + "px";
+            noBtn.style.position = "fixed";
+            noBtn.style.left = Math.random() * maxX + "px";
+            noBtn.style.top = Math.random() * maxY + "px";
         }
 
-        // Activate chaos only after first hover
         noBtn.addEventListener("mouseover", () => {
-            if (!chaosMode) {
-                chaosMode = true;
-
-                // Switch to fixed positioning while keeping current visual position
-                const rect = noBtn.getBoundingClientRect();
-                noBtn.style.position = "fixed";
-                noBtn.style.left = rect.left + "px";
-                noBtn.style.top = rect.top + "px";
-            }
-
+            if (!chaosMode) chaosMode = true;
             moveNoButtonFullScreen();
-
             yesScale += 0.15;
             yesBtn.style.transform = `scale(${yesScale})`;
         });
@@ -158,22 +204,39 @@
         yesBtn.addEventListener("click", () => {
             proposalBox.classList.add("hidden");
             noBtn.style.display = "none";
-            celebrationBox.classList.remove("hidden");
-            document.body.style.background = "linear-gradient(135deg, #a18cd1, #fbc2eb)";
+            verificationBox.classList.remove("hidden");
 
-            confetti({
-                particleCount: 200,
-                spread: 100,
-                origin: { y: 0.6 }
-            });
+            let progress = 0;
+            const messages = [
+                "Consulting Cupid... 💘",
+                "Checking compatibility... 🧠",
+                "Calculating lifetime happiness... 📊",
+                "Finalizing best decision ever... ✨"
+            ];
 
-            setTimeout(() => {
-                confetti({
-                    particleCount: 150,
-                    spread: 120,
-                    origin: { y: 0.6 }
-                });
-            }, 400);
+            let messageIndex = 0;
+
+            const interval = setInterval(() => {
+                progress += 10;
+                loadingProgress.style.width = progress + "%";
+
+                if (progress % 25 === 0 && messageIndex < messages.length - 1) {
+                    messageIndex++;
+                    verificationText.innerText = messages[messageIndex];
+                }
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    verificationBox.classList.add("hidden");
+                    celebrationBox.classList.remove("hidden");
+                    document.body.style.background = "linear-gradient(135deg, #a18cd1, #fbc2eb)";
+
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+                    setTimeout(() => {
+                        confetti({ particleCount: 150, spread: 120, origin: { y: 0.6 } });
+                    }, 400);
+                }
+            }, 300);
         });
     </script>
 
