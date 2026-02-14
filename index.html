@@ -38,8 +38,10 @@
         }
 
         .buttons {
-            position: relative;
-            height: 120px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
         }
 
         button {
@@ -54,13 +56,12 @@
         #yesBtn {
             background-color: #ff4d6d;
             color: white;
-            margin-right: 20px;
         }
 
         #noBtn {
             background-color: #6c757d;
             color: white;
-            position: fixed; /* Allows full screen movement */
+            position: fixed;
             z-index: 3;
         }
 
@@ -93,11 +94,9 @@
         <h1>Hey My Beautiful Wife 💕<br>Will you be my forever Valentine?</h1>
         <div class="buttons">
             <button id="yesBtn">Yes 💖</button>
+            <button id="noBtn">No 🙈</button>
         </div>
     </div>
-
-    <!-- No Button Outside Container for Full Screen Chaos -->
-    <button id="noBtn">No 🙈</button>
 
     <div class="container hidden" id="celebrationBox">
         <h1>BEST DECISION EVER!!! 😎💘</h1>
@@ -116,9 +115,17 @@
 
         let yesScale = 1;
         let musicStarted = false;
+        let chaosMode = false;
 
-        // Random starting position for No button
-        function moveNoButton() {
+        // Start music on first interaction (browser policy safe)
+        document.addEventListener("click", () => {
+            if (!musicStarted) {
+                bgMusic.play().catch(() => {});
+                musicStarted = true;
+            }
+        });
+
+        function moveNoButtonFullScreen() {
             const maxX = window.innerWidth - noBtn.offsetWidth;
             const maxY = window.innerHeight - noBtn.offsetHeight;
 
@@ -129,21 +136,15 @@
             noBtn.style.top = randomY + "px";
         }
 
-        moveNoButton();
-
-        // Start music on first interaction
-        document.addEventListener("click", () => {
-            if (!musicStarted) {
-                bgMusic.play().catch(() => {});
-                musicStarted = true;
-            }
-        });
-
-        // Make No button teleport across entire screen
+        // Only activate chaos AFTER first hover
         noBtn.addEventListener("mouseover", () => {
-            moveNoButton();
+            if (!chaosMode) {
+                chaosMode = true;
+                noBtn.style.position = "fixed";
+            }
 
-            // Grow Yes button
+            moveNoButtonFullScreen();
+
             yesScale += 0.15;
             yesBtn.style.transform = `scale(${yesScale})`;
         });
@@ -154,7 +155,6 @@
             celebrationBox.classList.remove("hidden");
             document.body.style.background = "linear-gradient(135deg, #a18cd1, #fbc2eb)";
 
-            // Confetti Explosion 🎉
             confetti({
                 particleCount: 200,
                 spread: 100,
