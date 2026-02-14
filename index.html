@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Will You Be My Valentine? 💖</title>
+
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
         body {
             margin: 0;
@@ -25,6 +29,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             position: relative;
             transition: all 0.4s ease;
+            z-index: 2;
         }
 
         h1 {
@@ -44,19 +49,19 @@
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: absolute;
         }
 
         #yesBtn {
             background-color: #ff4d6d;
             color: white;
-            left: 25%;
+            margin-right: 20px;
         }
 
         #noBtn {
             background-color: #6c757d;
             color: white;
-            left: 60%;
+            position: fixed; /* Allows full screen movement */
+            z-index: 3;
         }
 
         button:hover {
@@ -80,17 +85,19 @@
 <body>
 
     <!-- Background Romantic Music -->
-    <audio autoplay loop>
-        <source src="https://www.bensound.com/bensound-music/bensound-romantic.mp3" type="audio/mp3">
+    <audio id="bgMusic" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9b2b1bfa5c.mp3?filename=romantic-ambient-piano-110624.mp3" type="audio/mp3">
     </audio>
 
     <div class="container" id="proposalBox">
         <h1>Hey My Beautiful Wife 💕<br>Will you be my forever Valentine?</h1>
         <div class="buttons">
             <button id="yesBtn">Yes 💖</button>
-            <button id="noBtn">No 🙈</button>
         </div>
     </div>
+
+    <!-- No Button Outside Container for Full Screen Chaos -->
+    <button id="noBtn">No 🙈</button>
 
     <div class="container hidden" id="celebrationBox">
         <h1>BEST DECISION EVER!!! 😎💘</h1>
@@ -105,20 +112,36 @@
         const yesBtn = document.getElementById("yesBtn");
         const proposalBox = document.getElementById("proposalBox");
         const celebrationBox = document.getElementById("celebrationBox");
+        const bgMusic = document.getElementById("bgMusic");
 
         let yesScale = 1;
+        let musicStarted = false;
 
-        // Make No button run away AND Yes button grow
-        noBtn.addEventListener("mouseover", () => {
-            const container = document.querySelector(".buttons");
-            const maxX = container.offsetWidth - noBtn.offsetWidth;
-            const maxY = container.offsetHeight - noBtn.offsetHeight;
+        // Random starting position for No button
+        function moveNoButton() {
+            const maxX = window.innerWidth - noBtn.offsetWidth;
+            const maxY = window.innerHeight - noBtn.offsetHeight;
 
             const randomX = Math.floor(Math.random() * maxX);
             const randomY = Math.floor(Math.random() * maxY);
 
             noBtn.style.left = randomX + "px";
             noBtn.style.top = randomY + "px";
+        }
+
+        moveNoButton();
+
+        // Start music on first interaction
+        document.addEventListener("click", () => {
+            if (!musicStarted) {
+                bgMusic.play().catch(() => {});
+                musicStarted = true;
+            }
+        });
+
+        // Make No button teleport across entire screen
+        noBtn.addEventListener("mouseover", () => {
+            moveNoButton();
 
             // Grow Yes button
             yesScale += 0.15;
@@ -127,8 +150,24 @@
 
         yesBtn.addEventListener("click", () => {
             proposalBox.classList.add("hidden");
+            noBtn.style.display = "none";
             celebrationBox.classList.remove("hidden");
             document.body.style.background = "linear-gradient(135deg, #a18cd1, #fbc2eb)";
+
+            // Confetti Explosion 🎉
+            confetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+
+            setTimeout(() => {
+                confetti({
+                    particleCount: 150,
+                    spread: 120,
+                    origin: { y: 0.6 }
+                });
+            }, 400);
         });
     </script>
 
